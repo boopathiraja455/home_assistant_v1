@@ -81,12 +81,23 @@ A comprehensive Progressive Web App for managing daily nutrition, tasks, invento
 - **Daily updates** synchronized with voice schedules
 - **Shopping reminders** for missing ingredients
 
+**Interactive Bot Commands:**
+- `/due` - Show today's due tasks and reminders
+- `/menu` - Show today's and tomorrow's menu
+- `/stocks` - Show current stock levels for all items
+- `/lowstocks` - Show items running low or out of stock
+- `/nutrition` - Show today's nutrition summary
+- `/status` - Complete daily status overview
+- `/help` - Show all available commands
+
 **Setup Instructions:**
 1. Create bot with @BotFather on Telegram
 2. Get bot token from BotFather
 3. Start chat with your bot
 4. Get chat ID from @userinfobot
 5. Enter both in Settings page
+6. Enable Telegram integration
+7. Start sending commands to get real-time updates!
 
 ### 🔄 **GitLab Synchronization**
 **Auto-Sync Features:**

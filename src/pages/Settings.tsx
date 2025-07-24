@@ -12,6 +12,7 @@ import {
   TestTube
 } from 'lucide-react';
 import { Settings as SettingsType } from '../types';
+import { telegramBotService } from '../services/telegramBotService';
 
 interface SettingsProps {
   settings: SettingsType;
@@ -364,6 +365,22 @@ const Settings: React.FC<SettingsProps> = ({ settings, onUpdateSettings }) => {
             <li>5. Get your chat ID from @userinfobot</li>
             <li>6. Enter both values above and test</li>
           </ol>
+        </div>
+
+        <div className="mt-4 p-4 bg-primary-700 rounded-lg">
+          <h4 className="font-medium text-accent-400 mb-2">Available Bot Commands</h4>
+          <div className="text-sm text-primary-300 space-y-1">
+            {telegramBotService.getAvailableCommands().map(cmd => (
+              <div key={cmd.command} className="flex justify-between">
+                <code className="text-accent-400">{cmd.command}</code>
+                <span>{cmd.description}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 p-2 bg-primary-600 rounded text-xs text-primary-200">
+            💡 <strong>Tip:</strong> Once your bot is configured and enabled, you can send these commands 
+            to get real-time status updates from your Smart Assistant!
+          </div>
         </div>
       </div>
     </div>

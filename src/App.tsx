@@ -31,6 +31,7 @@ import {
   checkDishAvailability,
   generateTaskId
 } from './utils/dataManager';
+import { telegramBotService } from './services/telegramBotService';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -61,6 +62,44 @@ function App() {
         setReminders(remindersData);
         setSettingsState(settingsData);
         setDailyMenus(menusData);
+
+        // Initialize Telegram bot service
+        if (settingsData.telegram.enabled) {
+          telegramBotService.updateSettings(settingsData.telegram);
+          
+          // Get current and tomorrow menus from the loaded data
+          const today = new Date().toISOString().split('T')[0];
+          const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+          
+          const currentMenu = menusData.find(menu => menu.date === today) || {
+            date: today,
+            breakfast: "No meal planned",
+            addons: "No addon planned",
+            lunch: "No meal planned",
+            dinner: "No meal planned",
+            snacks: "No snack planned"
+          };
+          
+          const tomorrowMenu = menusData.find(menu => menu.date === tomorrow) || {
+            date: tomorrow,
+            breakfast: "No meal planned",
+            addons: "No addon planned",
+            lunch: "No meal planned",
+            dinner: "No meal planned",
+            snacks: "No snack planned"
+          };
+          
+          telegramBotService.updateData({
+            tasks: tasksData,
+            reminders: remindersData,
+            currentMenu: currentMenu,
+            tomorrowMenu: tomorrowMenu,
+            stock: stockData,
+            foodMenu: menuData
+          });
+          telegramBotService.startPolling();
+          telegramBotService.setBotCommands();
+        }
       } catch (error) {
         console.error('Error initializing data:', error);
       } finally {
@@ -69,6 +108,11 @@ function App() {
     };
 
     initializeData();
+
+    // Cleanup function
+    return () => {
+      telegramBotService.stopPolling();
+    };
   }, []);
 
   // Get current and tomorrow's menu
@@ -165,24 +209,78 @@ function App() {
   const handleUpdateStock = (newStock: Stock) => {
     setStock(newStock);
     saveStock(newStock);
+    
+    // Update Telegram bot data
+    if (settings?.telegram.enabled) {
+      telegramBotService.updateData({
+        tasks,
+        reminders,
+        currentMenu: getCurrentMenu(),
+        tomorrowMenu: getTomorrowMenu(),
+        stock: newStock,
+        foodMenu
+      });
+    }
   };
 
   // Handle updating tasks
   const handleUpdateTasks = (newTasks: Task[]) => {
     setTasks(newTasks);
     saveTasks(newTasks);
+    
+    // Update Telegram bot data
+    if (settings?.telegram.enabled) {
+      telegramBotService.updateData({
+        tasks: newTasks,
+        reminders,
+        currentMenu: getCurrentMenu(),
+        tomorrowMenu: getTomorrowMenu(),
+        stock,
+        foodMenu
+      });
+    }
   };
 
   // Handle updating reminders
   const handleUpdateReminders = (newReminders: Reminder[]) => {
     setReminders(newReminders);
     saveReminders(newReminders);
+    
+    // Update Telegram bot data
+    if (settings?.telegram.enabled) {
+      telegramBotService.updateData({
+        tasks,
+        reminders: newReminders,
+        currentMenu: getCurrentMenu(),
+        tomorrowMenu: getTomorrowMenu(),
+        stock,
+        foodMenu
+      });
+    }
   };
 
   // Handle updating settings
   const handleUpdateSettings = (newSettings: SettingsType) => {
     setSettingsState(newSettings);
     saveSettings(newSettings);
+    
+    // Update Telegram bot service
+    telegramBotService.updateSettings(newSettings.telegram);
+    
+    if (newSettings.telegram.enabled) {
+      telegramBotService.updateData({
+        tasks,
+        reminders,
+        currentMenu: getCurrentMenu(),
+        tomorrowMenu: getTomorrowMenu(),
+        stock,
+        foodMenu
+      });
+      telegramBotService.startPolling();
+      telegramBotService.setBotCommands();
+    } else {
+      telegramBotService.stopPolling();
+    }
   };
 
   if (loading) {
