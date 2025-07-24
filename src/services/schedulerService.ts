@@ -77,6 +77,7 @@ export class SchedulerService {
             this.tasks,
             this.reminders,
             this.stock,
+            this.foodMenu,
             schedule.content_types
           );
           
@@ -285,6 +286,7 @@ export class SchedulerService {
       this.tasks,
       this.reminders,
       this.stock,
+      this.foodMenu,
       schedule.content_types
     );
     

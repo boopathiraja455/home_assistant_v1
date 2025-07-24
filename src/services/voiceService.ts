@@ -1,5 +1,5 @@
-import { Settings, DailyMenu, Task, Reminder, Stock } from '../types';
-import { getLowStockItems, getTodaysTasks, getTodaysReminders } from '../utils/dataManager';
+import { Settings, DailyMenu, Task, Reminder, Stock, FoodMenu } from '../types';
+import { getLowStockItems, getTodaysTasks, getTodaysReminders, hasAvailableMeals, getAllMissingIngredients } from '../utils/dataManager';
 
 export class VoiceService {
   private synthesis: SpeechSynthesis | null = null;
@@ -134,6 +134,39 @@ export class VoiceService {
     return announcement;
   }
 
+  generateRestockAlert(
+    foodMenu: FoodMenu,
+    stock: Stock
+  ): string {
+    const hasAvailable = hasAvailableMeals(foodMenu, stock);
+    
+    if (!hasAvailable) {
+      const missingIngredients = getAllMissingIngredients(foodMenu, stock);
+      const allMissing: string[] = [];
+      
+      Object.values(missingIngredients).forEach(mealTypeMissing => {
+        mealTypeMissing.forEach(dishInfo => {
+          dishInfo.missing.forEach(item => {
+            const itemName = item.split(' (')[0];
+            if (!allMissing.includes(itemName)) {
+              allMissing.push(itemName);
+            }
+          });
+        });
+      });
+
+      return `Critical alert! No meals can be prepared with current stock. Please restock the following items immediately: ${allMissing.join(', ')}. I've added these to your shopping list.`;
+    }
+
+    const lowStockItems = getLowStockItems(stock);
+    if (lowStockItems.length > 0) {
+      const itemNames = lowStockItems.map(item => item.name);
+      return `Stock alert: The following items are running low: ${itemNames.join(', ')}. Consider restocking soon.`;
+    }
+
+    return '';
+  }
+
   generateFullAnnouncement(
     settings: Settings,
     currentMenu: DailyMenu,
@@ -141,6 +174,7 @@ export class VoiceService {
     tasks: Task[],
     reminders: Reminder[],
     stock: Stock,
+    foodMenu: FoodMenu,
     contentTypes: string[]
   ): string {
     let fullAnnouncement = '';
@@ -169,6 +203,13 @@ export class VoiceService {
 
     if (contentTypes.includes('low_stock')) {
       fullAnnouncement += this.generateLowStockAnnouncement(stock) + ' ';
+    }
+
+    if (contentTypes.includes('restock_alert')) {
+      const restockAlert = this.generateRestockAlert(foodMenu, stock);
+      if (restockAlert) {
+        fullAnnouncement += restockAlert + ' ';
+      }
     }
 
     return fullAnnouncement.trim();

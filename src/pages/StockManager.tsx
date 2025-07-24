@@ -5,7 +5,7 @@ import { getStockStatus } from '../utils/dataManager';
 
 interface StockManagerProps {
   stock: Stock;
-  onUpdateStock: (stock: Stock) => void;
+  onUpdateStock: (stock: Stock) => Promise<void> | void;
 }
 
 const StockManager: React.FC<StockManagerProps> = ({ stock, onUpdateStock }) => {

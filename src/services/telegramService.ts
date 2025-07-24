@@ -1,4 +1,5 @@
-import { TelegramSettings } from '../types';
+import { TelegramSettings, DailyMenu, Task, Reminder, FoodMenu, Stock } from '../types';
+import { getLowStockItems, hasAvailableMeals, getAllMissingIngredients } from '../utils/dataManager';
 
 export class TelegramService {
   private botToken: string = '';
@@ -246,6 +247,50 @@ export class TelegramService {
       console.error('Error testing Telegram connection:', error);
       return false;
     }
+  }
+
+  async sendRestockAlert(foodMenu: FoodMenu, stock: Stock): Promise<boolean> {
+    const hasAvailable = hasAvailableMeals(foodMenu, stock);
+    
+    if (!hasAvailable) {
+      const missingIngredients = getAllMissingIngredients(foodMenu, stock);
+      const allMissing: string[] = [];
+      
+      Object.values(missingIngredients).forEach(mealTypeMissing => {
+        mealTypeMissing.forEach(dishInfo => {
+          dishInfo.missing.forEach(item => {
+            const itemName = item.split(' (')[0];
+            if (!allMissing.includes(itemName)) {
+              allMissing.push(itemName);
+            }
+          });
+        });
+      });
+
+      const message = `🚨 *CRITICAL STOCK ALERT* 🚨\n\n` +
+                     `⚠️ No meals can be prepared with current stock!\n\n` +
+                     `📝 *Missing Ingredients:*\n${allMissing.map(item => `• ${item}`).join('\n')}\n\n` +
+                     `🛒 Please restock these items immediately!\n` +
+                     `📱 Items have been added to your shopping list.`;
+      
+      return await this.sendMessage(message);
+    }
+
+    const lowStockItems = getLowStockItems(stock);
+    if (lowStockItems.length > 0) {
+      const itemList = lowStockItems.map(item => 
+        `• ${item.name}: ${item.quantity} ${item.unit} left${item.threshold ? ` (threshold: ${item.threshold})` : ''}`
+      ).join('\n');
+
+      const message = `📦 *Stock Warning* 📦\n\n` +
+                     `⚠️ Some ingredients are running low:\n\n` +
+                     `${itemList}\n\n` +
+                     `🛒 Consider restocking soon to avoid meal preparation issues.`;
+      
+      return await this.sendMessage(message);
+    }
+
+    return true;
   }
 }
 

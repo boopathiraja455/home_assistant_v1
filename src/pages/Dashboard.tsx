@@ -10,8 +10,8 @@ import {
   Moon
 } from 'lucide-react';
 import { DailyMenu, Task, Reminder, FoodMenu, Settings as SettingsType, FoodMenu as FoodMenuType, Stock } from '../types';
-import { getCurrentTime, getCurrentDate, formatTime, getTodaysTasks, getTodaysReminders } from '../utils/dataManager';
-import NutritionCard from '../components/NutritionCard';
+import { getCurrentTime, getCurrentDate, formatTime, getTodaysTasks, getTodaysReminders, generateTaskId } from '../utils/dataManager';
+import RestockAlert from '../components/RestockAlert';
 
 interface DashboardProps {
   currentMenu: DailyMenu;
@@ -20,9 +20,11 @@ interface DashboardProps {
   reminders: Reminder[];
   foodMenu: FoodMenuType;
   settings: SettingsType;
+  stock: Stock;
   onMenuRotate: (mealType: keyof FoodMenu) => void;
-  onMarkCooked: (mealType: keyof FoodMenu, dishName: string) => void;
+  onMarkCooked: (mealType: keyof FoodMenu, dishName: string) => Promise<void> | void;
   onAddTask: () => void;
+  onUpdateTasks: (tasks: Task[]) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
@@ -32,9 +34,11 @@ const Dashboard: React.FC<DashboardProps> = ({
   reminders,
   foodMenu,
   settings,
+  stock,
   onMenuRotate,
   onMarkCooked,
-  onAddTask
+  onAddTask,
+  onUpdateTasks
 }) => {
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
   const [currentDate, setCurrentDate] = useState(getCurrentDate());
@@ -51,6 +55,28 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const todaysTasks = getTodaysTasks(tasks);
   const todaysReminders = getTodaysReminders(reminders);
+
+  const handleAddShoppingTask = (items: string[]) => {
+    const today = new Date().toISOString().split('T')[0];
+    const time = new Date().toLocaleTimeString('en-US', { 
+      hour12: false, 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+
+    const newTasks = items.map(item => ({
+      id: generateTaskId(),
+      type: 'shopping' as const,
+      task: `Buy ${item}`,
+      due_date: today,
+      due_time: time,
+      priority: 'high' as const,
+      status: 'pending' as const,
+      created_at: new Date().toISOString()
+    }));
+
+    onUpdateTasks([...tasks, ...newTasks]);
+  };
 
   const mealTypes = [
     { key: 'breakfast' as keyof FoodMenu, label: 'Breakfast', icon: Coffee, color: 'from-orange-500 to-amber-500' },
@@ -90,6 +116,15 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="text-xs text-primary-300">Dashboard</div>
           </div>
         </div>
+      </div>
+
+      {/* Restock Alert */}
+      <div className="mb-6">
+        <RestockAlert
+          foodMenu={foodMenu}
+          stock={stock}
+          onAddShoppingTask={handleAddShoppingTask}
+        />
       </div>
 
       {/* Today's Menu */}

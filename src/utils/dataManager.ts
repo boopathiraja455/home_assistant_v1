@@ -231,8 +231,60 @@ export const getLowStockItems = (stock: Stock): string[] => {
 
 export const checkDishAvailability = (dish: Dish, stock: Stock): boolean => {
   for (const [ingredient, amount] of Object.entries(dish.ingredients)) {
-    const stockItem = stock.groceries[ingredient] || stock.vegetables[ingredient];
-    if (!stockItem || stockItem.quantity === 0) {
+    // Parse amount more carefully - extract number and handle different units
+    const match = amount.match(/(\d+(?:\.\d+)?)/);
+    let numericAmount = match ? parseFloat(match[1]) : 0.1;
+    
+    // Convert to base units if needed
+    if (amount.includes('tbsp')) {
+      numericAmount = numericAmount * 15; // tbsp to ml/grams
+    } else if (amount.includes('tsp')) {
+      numericAmount = numericAmount * 5; // tsp to ml/grams
+    } else if (amount.includes('cup')) {
+      numericAmount = numericAmount * 250; // cup to ml/grams
+    } else if (amount.includes('small')) {
+      numericAmount = numericAmount * 0.05; // small onion ~50g
+    } else if (amount.includes('medium')) {
+      numericAmount = numericAmount * 0.1; // medium onion ~100g
+    } else if (amount.includes('large')) {
+      numericAmount = numericAmount * 0.15; // large onion ~150g
+    } else if (amount.includes('inch')) {
+      numericAmount = numericAmount * 0.01; // inch of ginger ~10g
+    } else if (amount.includes('pieces')) {
+      numericAmount = numericAmount * 0.01; // pieces ~10g each
+    } else if (amount.includes('g')) {
+      numericAmount = numericAmount / 1000; // convert grams to kg for vegetables
+    }
+    
+    const groceryItem = stock.groceries[ingredient];
+    const vegetableItem = stock.vegetables[ingredient];
+    
+    if (groceryItem) {
+      const unit = groceryItem.unit;
+      let requiredAmount = numericAmount;
+      
+      // Convert required amount to match stock unit
+      if (unit === 'grams' && numericAmount < 1) {
+        requiredAmount = numericAmount * 1000; // kg to grams
+      }
+      
+      if (groceryItem.quantity < requiredAmount) {
+        return false;
+      }
+    } else if (vegetableItem) {
+      const unit = vegetableItem.unit;
+      let requiredAmount = numericAmount;
+      
+      // Convert required amount to match stock unit
+      if (unit === 'grams' && numericAmount < 1) {
+        requiredAmount = numericAmount * 1000; // kg to grams
+      }
+      
+      if (vegetableItem.quantity < requiredAmount) {
+        return false;
+      }
+    } else {
+      // Ingredient not found in stock
       return false;
     }
   }
@@ -319,6 +371,103 @@ export const rotateMeal = (
   const currentIndex = availableDishes.indexOf(currentMeal);
   const nextIndex = (currentIndex + 1) % availableDishes.length;
   return availableDishes[nextIndex];
+};
+
+// Get missing ingredients for a dish
+export const getMissingIngredients = (dish: Dish, stock: Stock): string[] => {
+  const missing: string[] = [];
+  
+  for (const [ingredient, amount] of Object.entries(dish.ingredients)) {
+    // Parse amount more carefully
+    const match = amount.match(/(\d+(?:\.\d+)?)/);
+    let numericAmount = match ? parseFloat(match[1]) : 0.1;
+    
+    // Convert to base units if needed
+    if (amount.includes('tbsp')) {
+      numericAmount = numericAmount * 15;
+    } else if (amount.includes('tsp')) {
+      numericAmount = numericAmount * 5;
+    } else if (amount.includes('cup')) {
+      numericAmount = numericAmount * 250;
+    } else if (amount.includes('small')) {
+      numericAmount = numericAmount * 0.05;
+    } else if (amount.includes('medium')) {
+      numericAmount = numericAmount * 0.1;
+    } else if (amount.includes('large')) {
+      numericAmount = numericAmount * 0.15;
+    } else if (amount.includes('inch')) {
+      numericAmount = numericAmount * 0.01;
+    } else if (amount.includes('pieces')) {
+      numericAmount = numericAmount * 0.01;
+    } else if (amount.includes('g')) {
+      numericAmount = numericAmount / 1000;
+    }
+    
+    const groceryItem = stock.groceries[ingredient];
+    const vegetableItem = stock.vegetables[ingredient];
+    
+    if (groceryItem) {
+      const unit = groceryItem.unit;
+      let requiredAmount = numericAmount;
+      
+      if (unit === 'grams' && numericAmount < 1) {
+        requiredAmount = numericAmount * 1000;
+      }
+      
+      if (groceryItem.quantity < requiredAmount) {
+        const shortfall = requiredAmount - groceryItem.quantity;
+        missing.push(`${ingredient} (need ${shortfall.toFixed(2)} ${unit} more)`);
+      }
+    } else if (vegetableItem) {
+      const unit = vegetableItem.unit;
+      let requiredAmount = numericAmount;
+      
+      if (unit === 'grams' && numericAmount < 1) {
+        requiredAmount = numericAmount * 1000;
+      }
+      
+      if (vegetableItem.quantity < requiredAmount) {
+        const shortfall = requiredAmount - vegetableItem.quantity;
+        missing.push(`${ingredient} (need ${shortfall.toFixed(2)} ${unit} more)`);
+      }
+    } else {
+      missing.push(`${ingredient} (not in stock)`);
+    }
+  }
+  
+  return missing;
+};
+
+// Get all missing ingredients across all meal types
+export const getAllMissingIngredients = (foodMenu: FoodMenu, stock: Stock): { [mealType: string]: { dish: string; missing: string[] }[] } => {
+  const result: { [mealType: string]: { dish: string; missing: string[] }[] } = {};
+  
+  Object.entries(foodMenu).forEach(([mealType, dishes]) => {
+    result[mealType] = [];
+    
+    dishes.forEach(dish => {
+      const missing = getMissingIngredients(dish, stock);
+      if (missing.length > 0) {
+        result[mealType].push({
+          dish: dish.name,
+          missing
+        });
+      }
+    });
+  });
+  
+  return result;
+};
+
+// Check if any meals are possible
+export const hasAvailableMeals = (foodMenu: FoodMenu, stock: Stock): boolean => {
+  for (const [mealType, dishes] of Object.entries(foodMenu)) {
+    const availableDishes = dishes.filter(dish => checkDishAvailability(dish, stock));
+    if (availableDishes.length > 0) {
+      return true;
+    }
+  }
+  return false;
 };
 
 // Task Management Functions

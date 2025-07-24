@@ -29,10 +29,12 @@ import {
   rotateMeal,
   reduceStock,
   checkDishAvailability,
-  generateTaskId
+  generateTaskId,
+  hasAvailableMeals
 } from './utils/dataManager';
 import { telegramBotService } from './services/telegramBotService';
 import { schedulerService } from './services/schedulerService';
+import { restockAlertService } from './services/restockAlertService';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -63,6 +65,9 @@ function App() {
         setReminders(remindersData);
         setSettingsState(settingsData);
         setDailyMenus(menusData);
+
+        // Initialize restock alert service
+        restockAlertService.resetStatus(hasAvailableMeals(menuData, stockData));
 
         // Initialize Telegram bot service
         if (settingsData.telegram.enabled) {
@@ -172,8 +177,7 @@ function App() {
 
     if (confirmCook) {
       const newStock = reduceStock(stock, dish);
-      setStock(newStock);
-      saveStock(newStock);
+      handleUpdateStock(newStock);
       
       // Show success message
       alert(`${dishName} marked as cooked! Stock updated.`);
@@ -207,9 +211,23 @@ function App() {
   };
 
   // Handle updating stock
-  const handleUpdateStock = (newStock: Stock) => {
+  const handleUpdateStock = async (newStock: Stock) => {
     setStock(newStock);
     saveStock(newStock);
+    
+    // Check for restock alerts
+    if (settings) {
+      await restockAlertService.checkAndAlert(
+        foodMenu,
+        newStock,
+        settings,
+        (newTasks) => {
+          const updatedTasks = [...tasks, ...newTasks];
+          setTasks(updatedTasks);
+          saveTasks(updatedTasks);
+        }
+      );
+    }
     
     // Update Telegram bot data
     if (settings?.telegram.enabled) {
@@ -309,9 +327,11 @@ function App() {
                 reminders={reminders}
                 foodMenu={foodMenu}
                 settings={settings!}
+                stock={stock}
                 onMenuRotate={handleMenuRotate}
                 onMarkCooked={handleMarkCooked}
                 onAddTask={handleAddTask}
+                onUpdateTasks={handleUpdateTasks}
               />
             } 
           />
