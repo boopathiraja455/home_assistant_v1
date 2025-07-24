@@ -1,0 +1,238 @@
+{
+  "breakfast": [
+    {
+      "name": "Wheat Dosa",
+      "ingredients": {
+        "wheat_flour": "100g",
+        "onion": "1 small",
+        "green_chilli": "1",
+        "coriander": "2 tbsp",
+        "oil": "1 tbsp"
+      },
+      "nutrition": {
+        "protein": 6,
+        "fiber": 3
+      }
+    },
+    {
+      "name": "Poha",
+      "ingredients": {
+        "poha": "100g",
+        "onion": "1 medium",
+        "potato": "1 small",
+        "green_chilli": "2",
+        "turmeric": "1/2 tsp",
+        "oil": "1 tbsp"
+      },
+      "nutrition": {
+        "protein": 4,
+        "fiber": 2
+      }
+    },
+    {
+      "name": "Upma",
+      "ingredients": {
+        "semolina": "100g",
+        "onion": "1 medium",
+        "green_chilli": "2",
+        "ginger": "1 inch",
+        "curry_leaves": "8-10",
+        "oil": "2 tbsp"
+      },
+      "nutrition": {
+        "protein": 5,
+        "fiber": 2
+      }
+    },
+    {
+      "name": "Paratha",
+      "ingredients": {
+        "wheat_flour": "150g",
+        "potato": "2 medium",
+        "onion": "1 small",
+        "green_chilli": "1",
+        "oil": "2 tbsp"
+      },
+      "nutrition": {
+        "protein": 8,
+        "fiber": 4
+      }
+    }
+  ],
+  "addons": [
+    {
+      "name": "Coconut Chutney",
+      "ingredients": {
+        "coconut": "100g",
+        "green_chilli": "2",
+        "ginger": "1/2 inch",
+        "curry_leaves": "5",
+        "oil": "1 tsp"
+      },
+      "nutrition": {
+        "protein": 2,
+        "fiber": 4
+      }
+    },
+    {
+      "name": "Sambar",
+      "ingredients": {
+        "toor_dal": "50g",
+        "tomato": "1 medium",
+        "onion": "1 small",
+        "drumstick": "2 pieces",
+        "tamarind": "1 tbsp"
+      },
+      "nutrition": {
+        "protein": 8,
+        "fiber": 5
+      }
+    },
+    {
+      "name": "Pickle",
+      "ingredients": {
+        "mango_pickle": "1 tbsp"
+      },
+      "nutrition": {
+        "protein": 0,
+        "fiber": 1
+      }
+    }
+  ],
+  "lunch": [
+    {
+      "name": "Rice & Dal",
+      "ingredients": {
+        "rice": "150g",
+        "toor_dal": "75g",
+        "turmeric": "1/2 tsp",
+        "ghee": "1 tbsp"
+      },
+      "nutrition": {
+        "protein": 12,
+        "fiber": 3
+      }
+    },
+    {
+      "name": "Chapati & Sabzi",
+      "ingredients": {
+        "wheat_flour": "150g",
+        "mixed_vegetables": "200g",
+        "onion": "1 medium",
+        "tomato": "1 medium",
+        "oil": "2 tbsp"
+      },
+      "nutrition": {
+        "protein": 10,
+        "fiber": 8
+      }
+    },
+    {
+      "name": "Biryani",
+      "ingredients": {
+        "rice": "200g",
+        "mixed_vegetables": "150g",
+        "onion": "2 medium",
+        "yogurt": "100g",
+        "ghee": "2 tbsp"
+      },
+      "nutrition": {
+        "protein": 8,
+        "fiber": 4
+      }
+    },
+    {
+      "name": "Khichdi",
+      "ingredients": {
+        "rice": "100g",
+        "moong_dal": "50g",
+        "mixed_vegetables": "100g",
+        "turmeric": "1/2 tsp",
+        "ghee": "1 tbsp"
+      },
+      "nutrition": {
+        "protein": 10,
+        "fiber": 6
+      }
+    }
+  ],
+  "dinner": [
+    {
+      "name": "Light Rice & Dal",
+      "ingredients": {
+        "rice": "100g",
+        "moong_dal": "50g",
+        "turmeric": "1/2 tsp",
+        "ghee": "1 tsp"
+      },
+      "nutrition": {
+        "protein": 8,
+        "fiber": 2
+      }
+    },
+    {
+      "name": "Chapati & Light Curry",
+      "ingredients": {
+        "wheat_flour": "100g",
+        "bottle_gourd": "200g",
+        "onion": "1 small",
+        "tomato": "1 small",
+        "oil": "1 tbsp"
+      },
+      "nutrition": {
+        "protein": 6,
+        "fiber": 5
+      }
+    },
+    {
+      "name": "Soup & Bread",
+      "ingredients": {
+        "mixed_vegetables": "200g",
+        "bread": "2 slices",
+        "butter": "1 tsp"
+      },
+      "nutrition": {
+        "protein": 5,
+        "fiber": 4
+      }
+    }
+  ],
+  "snacks": [
+    {
+      "name": "Tea & Biscuits",
+      "ingredients": {
+        "tea": "1 cup",
+        "milk": "100ml",
+        "biscuits": "3 pieces",
+        "sugar": "1 tsp"
+      },
+      "nutrition": {
+        "protein": 3,
+        "fiber": 1
+      }
+    },
+    {
+      "name": "Fruits",
+      "ingredients": {
+        "banana": "1 medium",
+        "apple": "1 small"
+      },
+      "nutrition": {
+        "protein": 2,
+        "fiber": 6
+      }
+    },
+    {
+      "name": "Nuts Mix",
+      "ingredients": {
+        "almonds": "10 pieces",
+        "walnuts": "5 pieces",
+        "dates": "2 pieces"
+      },
+      "nutrition": {
+        "protein": 8,
+        "fiber": 4
+      }
+    }
+  ]
+}
