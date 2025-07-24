@@ -1,0 +1,40 @@
+{
+  "groceries": {
+    "rice": { "unit": "kg", "quantity": 2.5, "threshold": 0.5 },
+    "wheat_flour": { "unit": "kg", "quantity": 1.8, "threshold": 0.3 },
+    "toor_dal": { "unit": "kg", "quantity": 0.8, "threshold": 0.2 },
+    "moong_dal": { "unit": "kg", "quantity": 0.5, "threshold": 0.1 },
+    "semolina": { "unit": "kg", "quantity": 0.3, "threshold": 0.1 },
+    "poha": { "unit": "kg", "quantity": 0.4, "threshold": 0.1 },
+    "oil": { "unit": "liter", "quantity": 0.8, "threshold": 0.2 },
+    "ghee": { "unit": "kg", "quantity": 0.2, "threshold": 0.05 },
+    "sugar": { "unit": "kg", "quantity": 0.5, "threshold": 0.1 },
+    "tea": { "unit": "grams", "quantity": 200, "threshold": 50 },
+    "milk": { "unit": "liter", "quantity": 1.0, "threshold": 0.2 },
+    "yogurt": { "unit": "grams", "quantity": 500, "threshold": 100 },
+    "coconut": { "unit": "pieces", "quantity": 2, "threshold": 1 },
+    "turmeric": { "unit": "grams", "quantity": 100, "threshold": 20 },
+    "tamarind": { "unit": "grams", "quantity": 150, "threshold": 30 },
+    "mango_pickle": { "unit": "grams", "quantity": 300, "threshold": 50 },
+    "biscuits": { "unit": "packets", "quantity": 2, "threshold": 1 },
+    "bread": { "unit": "loaves", "quantity": 1, "threshold": 1 },
+    "butter": { "unit": "grams", "quantity": 200, "threshold": 50 },
+    "almonds": { "unit": "grams", "quantity": 250, "threshold": 50 },
+    "walnuts": { "unit": "grams", "quantity": 150, "threshold": 30 },
+    "dates": { "unit": "grams", "quantity": 200, "threshold": 50 }
+  },
+  "vegetables": {
+    "onion": { "unit": "kg", "quantity": 1.2, "threshold": 0.3 },
+    "tomato": { "unit": "kg", "quantity": 0.8, "threshold": 0.2 },
+    "potato": { "unit": "kg", "quantity": 1.5, "threshold": 0.5 },
+    "green_chilli": { "unit": "grams", "quantity": 100, "threshold": 20 },
+    "ginger": { "unit": "grams", "quantity": 80, "threshold": 20 },
+    "coriander": { "unit": "bundles", "quantity": 2, "threshold": 1 },
+    "curry_leaves": { "unit": "bundles", "quantity": 1, "threshold": 1 },
+    "mixed_vegetables": { "unit": "kg", "quantity": 1.0, "threshold": 0.3 },
+    "bottle_gourd": { "unit": "kg", "quantity": 0.5, "threshold": 0.2 },
+    "drumstick": { "unit": "pieces", "quantity": 6, "threshold": 2 },
+    "banana": { "unit": "pieces", "quantity": 8, "threshold": 3 },
+    "apple": { "unit": "pieces", "quantity": 5, "threshold": 2 }
+  }
+}
