@@ -297,26 +297,57 @@ For issues or questions:
 2. Verify JSON data format matches examples
 3. Test voice/Telegram features with provided setup guides
 4. Use GitLab sync for data backup and recovery
+5. See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment issues
+
+---
+
+## 🎯 **What's New**
+
+### **Latest Updates**
+- ✅ **Smart Stock Alerts**: No more suggesting unavailable dishes
+- ✅ **Critical Restock Warnings**: Voice & Telegram alerts when ingredients run out
+- ✅ **Auto Shopping Lists**: Missing ingredients automatically added as urgent tasks
+- ✅ **Hamburger Navigation**: Clean slide-out menu replacing bottom tabs
+- ✅ **GitLab Deployment**: One-click deployment with CI/CD pipeline
+- ✅ **Secure Configuration**: Sensitive data stored in separate config files
+- ✅ **Enhanced Scheduling**: Proper task/reminder notifications at due times
 
 ---
 
 ## 🚀 **Deployment**
 
-### **Build for Production**
-```bash
-npm run build
-```
+Deploy your Smart Assistant PWA to GitLab Pages with automatic CI/CD:
 
-### **Deploy to Static Hosting**
-The built files in `dist/` can be deployed to:
-- Netlify
-- Vercel
-- GitHub Pages
+### **Quick Deployment**
+1. **Push to GitLab**: Upload your code to a GitLab repository
+2. **Auto Deploy**: GitLab CI/CD automatically builds and deploys
+3. **Access**: Your app will be available at `https://[username].gitlab.io/[project-name]`
+
+### **Configuration Files**
+Before deployment, configure these files in `public/config/`:
+- `telegram.json` - Bot token and chat ID
+- `gitlab.json` - Personal access token and project ID  
+- `voice.json` - Voice announcement schedules
+
+### **Features After Deployment**
+- ✅ **Accessible Anywhere**: Use from any device with internet
+- ✅ **PWA Installation**: Install as native app on mobile/desktop
+- ✅ **Offline Functionality**: Works without internet after first visit
+- ✅ **Auto Updates**: Updates automatically when you push changes
+- ✅ **Data Sync**: Automatic backup to GitLab every 5 minutes
+- ✅ **Cross-Device**: Access same data from multiple devices
+
+### **Deployment Guide**
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed setup instructions.
+
+### **Alternative Hosting**
+The built files in `dist/` can also be deployed to:
+- Netlify, Vercel, GitHub Pages
 - Any static file hosting service
 
-### **Self-Hosting**
+### **Local Development**
 ```bash
-npm run preview
+npm run build && npm run preview
 ```
 
 ---

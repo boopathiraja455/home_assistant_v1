@@ -1,0 +1,100 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  NODE_VERSION: "18"
+  PUBLIC_URL: "https://$CI_PROJECT_NAMESPACE.gitlab.io/$CI_PROJECT_NAME"
+
+# Cache node_modules for faster builds
+cache:
+  paths:
+    - node_modules/
+    - .npm/
+
+# Build stage
+build:
+  stage: build
+  image: node:$NODE_VERSION-alpine
+  before_script:
+    - npm ci --cache .npm --prefer-offline
+  script:
+    - echo "Building for production..."
+    - npm run build
+    - echo "Build completed successfully"
+    # Ensure data folder exists in dist
+    - mkdir -p dist/data
+    - mkdir -p dist/config
+    # Copy data files to dist
+    - cp -r public/data/* dist/data/ || echo "No data files to copy"
+    - cp -r public/config/* dist/config/ || echo "No config files to copy"
+    # Create backup directory structure
+    - mkdir -p dist/backup
+    - echo "Folder structure created for data access"
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 hour
+  only:
+    - main
+    - master
+    - develop
+
+# Deploy to GitLab Pages
+pages:
+  stage: deploy
+  image: alpine:latest
+  dependencies:
+    - build
+  script:
+    - echo "Deploying to GitLab Pages..."
+    # Create public directory for GitLab Pages
+    - rm -rf public
+    - mv dist public
+    # Ensure all necessary directories exist
+    - mkdir -p public/data
+    - mkdir -p public/config
+    - mkdir -p public/backup
+    # Create .nojekyll to prevent Jekyll processing
+    - touch public/.nojekyll
+    # Create a simple index redirect if needed
+    - |
+      if [ ! -f public/index.html ]; then
+        echo "<!DOCTYPE html><html><head><meta http-equiv='refresh' content='0;url=./index.html'></head><body>Redirecting...</body></html>" > public/index.html
+      fi
+    # Set proper permissions
+    - chmod -R 755 public
+    - echo "Deployment completed successfully"
+    - echo "App will be available at: $PUBLIC_URL"
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  only:
+    - main
+    - master
+
+# Optional: Deploy to staging for other branches
+deploy_staging:
+  stage: deploy
+  image: alpine:latest
+  dependencies:
+    - build
+  script:
+    - echo "Deploying staging version..."
+    - rm -rf staging
+    - mv dist staging
+    - mkdir -p staging/data
+    - mkdir -p staging/config
+    - mkdir -p staging/backup
+    - touch staging/.nojekyll
+    - chmod -R 755 staging
+    - echo "Staging deployment completed"
+  artifacts:
+    paths:
+      - staging
+    expire_in: 7 days
+  only:
+    - develop
+    - feature/*
+  when: manual
