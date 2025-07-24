@@ -243,16 +243,54 @@ export const reduceStock = (stock: Stock, dish: Dish): Stock => {
   const newStock = JSON.parse(JSON.stringify(stock));
   
   for (const [ingredient, amount] of Object.entries(dish.ingredients)) {
-    const numericAmount = parseFloat(amount.replace(/[^\d.]/g, '')) || 0.1;
+    // Parse amount more carefully - extract number and handle different units
+    const match = amount.match(/(\d+(?:\.\d+)?)/);
+    let numericAmount = match ? parseFloat(match[1]) : 0.1;
     
+    // Convert to base units if needed
+    if (amount.includes('tbsp')) {
+      numericAmount = numericAmount * 15; // tbsp to ml/grams
+    } else if (amount.includes('tsp')) {
+      numericAmount = numericAmount * 5; // tsp to ml/grams
+    } else if (amount.includes('cup')) {
+      numericAmount = numericAmount * 250; // cup to ml/grams
+    } else if (amount.includes('small')) {
+      numericAmount = numericAmount * 0.05; // small onion ~50g
+    } else if (amount.includes('medium')) {
+      numericAmount = numericAmount * 0.1; // medium onion ~100g
+    } else if (amount.includes('large')) {
+      numericAmount = numericAmount * 0.15; // large onion ~150g
+    } else if (amount.includes('inch')) {
+      numericAmount = numericAmount * 0.01; // inch of ginger ~10g
+    } else if (amount.includes('pieces')) {
+      numericAmount = numericAmount * 0.01; // pieces ~10g each
+    } else if (amount.includes('g')) {
+      numericAmount = numericAmount / 1000; // convert grams to kg for vegetables
+    }
+    
+    // Apply reduction to stock
     if (newStock.groceries[ingredient]) {
-      newStock.groceries[ingredient].quantity = Math.max(0, 
-        newStock.groceries[ingredient].quantity - numericAmount
-      );
+      const currentQty = newStock.groceries[ingredient].quantity;
+      const unit = newStock.groceries[ingredient].unit;
+      
+      // Convert reduction amount to match stock unit
+      let reductionAmount = numericAmount;
+      if (unit === 'grams' && numericAmount < 1) {
+        reductionAmount = numericAmount * 1000; // kg to grams
+      }
+      
+      newStock.groceries[ingredient].quantity = Math.max(0, currentQty - reductionAmount);
     } else if (newStock.vegetables[ingredient]) {
-      newStock.vegetables[ingredient].quantity = Math.max(0, 
-        newStock.vegetables[ingredient].quantity - numericAmount
-      );
+      const currentQty = newStock.vegetables[ingredient].quantity;
+      const unit = newStock.vegetables[ingredient].unit;
+      
+      // Convert reduction amount to match stock unit
+      let reductionAmount = numericAmount;
+      if (unit === 'grams' && numericAmount < 1) {
+        reductionAmount = numericAmount * 1000; // kg to grams
+      }
+      
+      newStock.vegetables[ingredient].quantity = Math.max(0, currentQty - reductionAmount);
     }
   }
   

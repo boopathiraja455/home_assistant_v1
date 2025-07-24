@@ -1,0 +1,9 @@
+{
+  "token": "",
+  "project_id": "",
+  "branch": "main",
+  "enabled": false,
+  "auto_sync_interval": 5,
+  "last_sync": "",
+  "backup_retention_days": 60
+}

@@ -75,14 +75,21 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="min-h-screen bg-primary-900 p-4">
-      {/* Header with Clock */}
-      <div className="card mb-6 text-center">
-        <div className="flex items-center justify-center mb-2">
-          <Clock className="text-accent-400 mr-2" size={24} />
-          <h1 className="text-2xl font-bold text-accent-400">Smart Assistant</h1>
+      {/* Header with Clock - Ribbon Style */}
+      <div className="card mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Clock className="text-accent-400 mr-2" size={20} />
+            <div>
+              <div className="text-lg font-mono text-white">{currentTime}</div>
+              <div className="text-xs text-primary-400">{currentDate}</div>
+            </div>
+          </div>
+          <div className="text-right">
+            <h1 className="text-xl font-bold text-accent-400">Smart Assistant</h1>
+            <div className="text-xs text-primary-300">Dashboard</div>
+          </div>
         </div>
-        <div className="text-3xl font-mono text-white mb-1">{currentTime}</div>
-        <div className="text-primary-300">{currentDate}</div>
       </div>
 
       {/* Today's Menu */}
@@ -131,16 +138,30 @@ const Dashboard: React.FC<DashboardProps> = ({
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {mealTypes.map(({ key, label, icon: Icon, color }) => (
-            <div key={key} className="card relative overflow-hidden opacity-75">
-              <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-5`}></div>
+            <div key={key} className="card relative overflow-hidden">
+              <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-10`}></div>
               <div className="relative z-10">
-                <div className="flex items-center mb-2">
-                  <Icon size={18} className="text-primary-400 mr-2" />
-                  <h3 className="font-medium text-sm text-primary-300">{label}</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <Icon size={18} className="text-primary-300" />
+                  <button
+                    onClick={() => onMenuRotate(key)}
+                    className="p-1 hover:bg-primary-700 rounded transition-colors"
+                    title="Rotate meal"
+                  >
+                    <RotateCw size={14} className="text-primary-400 hover:text-accent-400" />
+                  </button>
                 </div>
-                <p className="text-primary-200 text-sm min-h-[2rem] leading-tight">
+                <h3 className="font-medium text-sm text-primary-200 mb-2">{label}</h3>
+                <p className="text-white text-sm font-medium mb-3 min-h-[2rem] leading-tight">
                   {tomorrowMenu[key]}
                 </p>
+                <button
+                  onClick={() => onMarkCooked(key, tomorrowMenu[key])}
+                  className="w-full btn-secondary text-xs py-2 flex items-center justify-center opacity-75"
+                >
+                  <CheckCircle size={12} className="mr-1" />
+                  Pre-cook
+                </button>
               </div>
             </div>
           ))}
@@ -215,15 +236,6 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </>
         )}
-      </div>
-
-      {/* Nutrition Tracking */}
-      <div className="mb-6">
-        <NutritionCard
-          currentMenu={currentMenu}
-          foodMenu={foodMenu}
-          settings={settings}
-        />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Navigation from './components/Navigation';
+import HamburgerMenu from './components/HamburgerMenu';
 import Dashboard from './pages/Dashboard';
 import StockManager from './pages/StockManager';
 import MenuPlanner from './pages/MenuPlanner';
@@ -32,6 +32,7 @@ import {
   generateTaskId
 } from './utils/dataManager';
 import { telegramBotService } from './services/telegramBotService';
+import { schedulerService } from './services/schedulerService';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -297,68 +298,66 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-primary-900 text-white">
-        <div className="pb-16">
-          <Routes>
-            <Route 
-              path="/" 
-              element={
-                <Dashboard
-                  currentMenu={getCurrentMenu()}
-                  tomorrowMenu={getTomorrowMenu()}
-                  tasks={tasks}
-                  reminders={reminders}
-                  foodMenu={foodMenu}
-                  settings={settings!}
-                  onMenuRotate={handleMenuRotate}
-                  onMarkCooked={handleMarkCooked}
-                  onAddTask={handleAddTask}
-                />
-              } 
-            />
-            <Route 
-              path="/stock" 
-              element={
-                <StockManager
-                  stock={stock}
-                  onUpdateStock={handleUpdateStock}
-                />
-              } 
-            />
-            <Route 
-              path="/menu" 
-              element={
-                <MenuPlanner
-                  foodMenu={foodMenu}
-                  stock={stock}
-                  onUpdateMenu={setFoodMenu}
-                />
-              } 
-            />
-            <Route 
-              path="/tasks" 
-              element={
-                <TaskManager
-                  tasks={tasks}
-                  reminders={reminders}
-                  onUpdateTasks={handleUpdateTasks}
-                  onUpdateReminders={handleUpdateReminders}
-                />
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <Settings
-                  settings={settings!}
-                  onUpdateSettings={handleUpdateSettings}
-                />
-              } 
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              <Dashboard
+                currentMenu={getCurrentMenu()}
+                tomorrowMenu={getTomorrowMenu()}
+                tasks={tasks}
+                reminders={reminders}
+                foodMenu={foodMenu}
+                settings={settings!}
+                onMenuRotate={handleMenuRotate}
+                onMarkCooked={handleMarkCooked}
+                onAddTask={handleAddTask}
+              />
+            } 
+          />
+          <Route 
+            path="/stock" 
+            element={
+              <StockManager
+                stock={stock}
+                onUpdateStock={handleUpdateStock}
+              />
+            } 
+          />
+          <Route 
+            path="/menu" 
+            element={
+              <MenuPlanner
+                foodMenu={foodMenu}
+                stock={stock}
+                onUpdateMenu={setFoodMenu}
+              />
+            } 
+          />
+          <Route 
+            path="/tasks" 
+            element={
+              <TaskManager
+                tasks={tasks}
+                reminders={reminders}
+                onUpdateTasks={handleUpdateTasks}
+                onUpdateReminders={handleUpdateReminders}
+              />
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <Settings
+                settings={settings!}
+                onUpdateSettings={handleUpdateSettings}
+              />
+            } 
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
         
-        <Navigation 
+        <HamburgerMenu 
           currentPage={currentPage} 
           onPageChange={setCurrentPage} 
         />

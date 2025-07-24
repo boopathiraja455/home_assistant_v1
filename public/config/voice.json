@@ -1,0 +1,36 @@
+{
+  "enabled": true,
+  "voice_rate": 0.9,
+  "voice_pitch": 1.0,
+  "voice_volume": 1.0,
+  "schedules": [
+    {
+      "id": "morning",
+      "name": "Morning Update",
+      "time": "07:00",
+      "enabled": true,
+      "content_types": ["greeting", "menu_today", "tasks", "reminders"]
+    },
+    {
+      "id": "lunch",
+      "name": "Lunch Reminder",
+      "time": "12:30",
+      "enabled": true,
+      "content_types": ["menu_today"]
+    },
+    {
+      "id": "evening",
+      "name": "Evening Update",
+      "time": "18:00",
+      "enabled": true,
+      "content_types": ["menu_tomorrow", "low_stock", "tasks"]
+    },
+    {
+      "id": "bedtime",
+      "name": "Bedtime Summary",
+      "time": "21:00",
+      "enabled": false,
+      "content_types": ["menu_tomorrow", "low_stock"]
+    }
+  ]
+}

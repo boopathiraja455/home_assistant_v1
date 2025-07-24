@@ -1,0 +1,35 @@
+{
+  "bot_token": "",
+  "chat_id": "",
+  "enabled": false,
+  "schedules": [
+    {
+      "id": "morning_update",
+      "name": "Morning Update",
+      "time": "07:00",
+      "enabled": true,
+      "content_types": ["menu_today", "tasks", "reminders"]
+    },
+    {
+      "id": "lunch_reminder",
+      "name": "Lunch Reminder",
+      "time": "12:30",
+      "enabled": true,
+      "content_types": ["menu_today"]
+    },
+    {
+      "id": "evening_update",
+      "name": "Evening Update",
+      "time": "18:00",
+      "enabled": true,
+      "content_types": ["menu_tomorrow", "low_stock", "tasks"]
+    },
+    {
+      "id": "low_stock_alert",
+      "name": "Low Stock Alert",
+      "time": "20:00",
+      "enabled": true,
+      "content_types": ["low_stock"]
+    }
+  ]
+}
