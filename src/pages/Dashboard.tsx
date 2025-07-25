@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { DailyMenu, Task, Reminder, FoodMenu, Settings as SettingsType, FoodMenu as FoodMenuType, Stock } from '../types';
 import { getCurrentTime, getCurrentDate, formatTime, getTodaysTasks, getTodaysReminders, generateTaskId } from '../utils/dataManager';
-import RestockAlert from '../components/RestockAlert';
+import NotificationBell from '../components/NotificationBell';
 
 interface DashboardProps {
   currentMenu: DailyMenu;
@@ -111,21 +111,21 @@ const Dashboard: React.FC<DashboardProps> = ({
               <div className="text-xs text-primary-400">{currentDate}</div>
             </div>
           </div>
-          <div className="text-right">
-            <h1 className="text-xl font-bold text-accent-400">Smart Assistant</h1>
-            <div className="text-xs text-primary-300">Dashboard</div>
+          <div className="flex items-center space-x-3">
+            <NotificationBell
+              foodMenu={foodMenu}
+              stock={stock}
+              onAddShoppingTask={handleAddShoppingTask}
+            />
+            <div className="text-right">
+              <h1 className="text-xl font-bold text-accent-400">Smart Assistant</h1>
+              <div className="text-xs text-primary-300">Dashboard</div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Restock Alert */}
-      <div className="mb-6">
-        <RestockAlert
-          foodMenu={foodMenu}
-          stock={stock}
-          onAddShoppingTask={handleAddShoppingTask}
-        />
-      </div>
+
 
       {/* Today's Menu */}
       <div className="mb-6">

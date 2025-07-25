@@ -69,31 +69,42 @@ function App() {
         // Initialize restock alert service
         restockAlertService.resetStatus(hasAvailableMeals(menuData, stockData));
 
+        // Get current and tomorrow menus for services
+        const today = new Date().toISOString().split('T')[0];
+        const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+        
+        const currentMenu = menusData.find(menu => menu.date === today) || {
+          date: today,
+          breakfast: "No meal planned",
+          addons: "No addon planned",
+          lunch: "No meal planned",
+          dinner: "No meal planned",
+          snacks: "No snack planned"
+        };
+        
+        const tomorrowMenu = menusData.find(menu => menu.date === tomorrow) || {
+          date: tomorrow,
+          breakfast: "No meal planned",
+          addons: "No addon planned",
+          lunch: "No meal planned",
+          dinner: "No meal planned",
+          snacks: "No snack planned"
+        };
+
+        // Initialize scheduler service
+        schedulerService.updateData({
+          settings: settingsData,
+          tasks: tasksData,
+          reminders: remindersData,
+          currentMenu: currentMenu,
+          tomorrowMenu: tomorrowMenu,
+          stock: stockData,
+          foodMenu: menuData
+        });
+
         // Initialize Telegram bot service
         if (settingsData.telegram.enabled) {
           telegramBotService.updateSettings(settingsData.telegram);
-          
-          // Get current and tomorrow menus from the loaded data
-          const today = new Date().toISOString().split('T')[0];
-          const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-          
-          const currentMenu = menusData.find(menu => menu.date === today) || {
-            date: today,
-            breakfast: "No meal planned",
-            addons: "No addon planned",
-            lunch: "No meal planned",
-            dinner: "No meal planned",
-            snacks: "No snack planned"
-          };
-          
-          const tomorrowMenu = menusData.find(menu => menu.date === tomorrow) || {
-            date: tomorrow,
-            breakfast: "No meal planned",
-            addons: "No addon planned",
-            lunch: "No meal planned",
-            dinner: "No meal planned",
-            snacks: "No snack planned"
-          };
           
           telegramBotService.updateData({
             tasks: tasksData,
@@ -116,9 +127,10 @@ function App() {
     initializeData();
 
     // Cleanup function
-    return () => {
-      telegramBotService.stopPolling();
-    };
+          return () => {
+        telegramBotService.stopPolling();
+        schedulerService.stop();
+      };
   }, []);
 
   // Get current and tomorrow's menu
@@ -229,9 +241,10 @@ function App() {
       );
     }
     
-    // Update Telegram bot data
-    if (settings?.telegram.enabled) {
-      telegramBotService.updateData({
+    // Update services with new data
+    if (settings) {
+      schedulerService.updateData({
+        settings,
         tasks,
         reminders,
         currentMenu: getCurrentMenu(),
@@ -239,6 +252,17 @@ function App() {
         stock: newStock,
         foodMenu
       });
+
+      if (settings.telegram.enabled) {
+        telegramBotService.updateData({
+          tasks,
+          reminders,
+          currentMenu: getCurrentMenu(),
+          tomorrowMenu: getTomorrowMenu(),
+          stock: newStock,
+          foodMenu
+        });
+      }
     }
   };
 

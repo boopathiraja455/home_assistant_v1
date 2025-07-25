@@ -219,6 +219,11 @@ export class SchedulerService {
     const now = new Date();
     const [hours, minutes] = time.split(':').map(Number);
     
+    if (isNaN(hours) || isNaN(minutes)) {
+      console.error(`Invalid time format: ${time}`);
+      return null;
+    }
+    
     const scheduledTime = new Date();
     scheduledTime.setHours(hours, minutes, 0, 0);
     
@@ -229,11 +234,21 @@ export class SchedulerService {
     
     const delay = scheduledTime.getTime() - now.getTime();
     
+    console.log(`Scheduling ${time} - delay: ${delay}ms (${Math.round(delay/1000/60)} minutes)`);
+    
     if (delay > 0) {
       return setTimeout(() => {
-        callback();
+        console.log(`Executing scheduled task at ${time}`);
+        try {
+          callback();
+        } catch (error) {
+          console.error(`Error executing scheduled task at ${time}:`, error);
+        }
         // Reschedule for next day
-        this.scheduleDaily(time, callback);
+        const nextTimeout = this.scheduleDaily(time, callback);
+        if (nextTimeout) {
+          this.scheduledJobs.set(`${time}-daily`, nextTimeout);
+        }
       }, delay);
     }
     

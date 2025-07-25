@@ -198,7 +198,26 @@ export const saveData = (key: string, data: any): void => {
 };
 
 export const saveFoodMenu = (menu: FoodMenu): void => saveData('food_menu', menu);
-export const saveStock = (stock: Stock): void => saveData('stock', stock);
+export const saveStock = (stock: Stock): void => {
+  saveData('stock', stock);
+  // Also save to JSON file for persistence
+  saveToJSONFile('stock', stock);
+};
+
+// Function to save data to JSON files
+const saveToJSONFile = async (filename: string, data: any): Promise<void> => {
+  try {
+    // In a real browser environment, we can't directly write to files
+    // This is a placeholder for the concept
+    console.log(`Saving ${filename} data:`, data);
+    
+    // For now, we'll just update localStorage and log
+    // In a real implementation, this would require a backend API
+    localStorage.setItem(filename, JSON.stringify(data));
+  } catch (error) {
+    console.error(`Error saving ${filename} to JSON:`, error);
+  }
+};
 export const saveTasks = (tasks: Task[]): void => saveData('tasks', tasks);
 export const saveReminders = (reminders: Reminder[]): void => saveData('reminders', reminders);
 export const saveSettings = (settings: Settings): void => saveData('settings', settings);
@@ -230,7 +249,11 @@ export const getLowStockItems = (stock: Stock): string[] => {
 };
 
 export const checkDishAvailability = (dish: Dish, stock: Stock): boolean => {
+  console.log(`Checking availability for dish: ${dish.name}`);
+  
   for (const [ingredient, amount] of Object.entries(dish.ingredients)) {
+    console.log(`  Checking ingredient: ${ingredient} (${amount})`);
+    
     // Parse amount more carefully - extract number and handle different units
     const match = amount.match(/(\d+(?:\.\d+)?)/);
     let numericAmount = match ? parseFloat(match[1]) : 0.1;
@@ -259,6 +282,9 @@ export const checkDishAvailability = (dish: Dish, stock: Stock): boolean => {
     const groceryItem = stock.groceries[ingredient];
     const vegetableItem = stock.vegetables[ingredient];
     
+    console.log(`    Grocery item:`, groceryItem);
+    console.log(`    Vegetable item:`, vegetableItem);
+    
     if (groceryItem) {
       const unit = groceryItem.unit;
       let requiredAmount = numericAmount;
@@ -268,7 +294,10 @@ export const checkDishAvailability = (dish: Dish, stock: Stock): boolean => {
         requiredAmount = numericAmount * 1000; // kg to grams
       }
       
+      console.log(`    Required: ${requiredAmount} ${unit}, Available: ${groceryItem.quantity} ${unit}`);
+      
       if (groceryItem.quantity < requiredAmount) {
+        console.log(`    ❌ Not enough ${ingredient}`);
         return false;
       }
     } else if (vegetableItem) {
@@ -280,14 +309,19 @@ export const checkDishAvailability = (dish: Dish, stock: Stock): boolean => {
         requiredAmount = numericAmount * 1000; // kg to grams
       }
       
+      console.log(`    Required: ${requiredAmount} ${unit}, Available: ${vegetableItem.quantity} ${unit}`);
+      
       if (vegetableItem.quantity < requiredAmount) {
+        console.log(`    ❌ Not enough ${ingredient}`);
         return false;
       }
     } else {
       // Ingredient not found in stock
+      console.log(`    ❌ Ingredient ${ingredient} not found in stock`);
       return false;
     }
   }
+  console.log(`  ✅ ${dish.name} is available`);
   return true;
 };
 
