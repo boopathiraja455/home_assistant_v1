@@ -1,370 +1,230 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Navigation from './components/Navigation';
-import Dashboard from './pages/Dashboard';
-import StockManager from './pages/StockManager';
-import MenuPlanner from './pages/MenuPlanner';
-import TaskManager from './pages/TaskManager';
-import Settings from './pages/Settings';
-import { 
-  FoodMenu, 
-  Stock, 
-  Task, 
-  Reminder, 
-  Settings as SettingsType, 
-  DailyMenu 
-} from './types';
-import {
-  loadFoodMenu,
-  loadStock,
-  loadTasks,
-  loadReminders,
-  loadSettings,
-  loadDailyMenus,
-  saveStock,
-  saveTasks,
-  saveReminders,
-  saveSettings,
-  saveDailyMenus,
-  rotateMeal,
-  reduceStock,
-  checkDishAvailability,
-  generateTaskId
-} from './utils/dataManager';
-import { telegramBotService } from './services/telegramBotService';
+import { Dashboard } from './components/Dashboard';
+import { TimerModal } from './components/TimerModal';
+import { wifiMonitorService } from './services/wifi-monitor-service';
+import { ModalState } from './types/wifi-monitor';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('dashboard');
-  const [foodMenu, setFoodMenu] = useState<FoodMenu>({ breakfast: [], addons: [], lunch: [], dinner: [], snacks: [] });
-  const [stock, setStock] = useState<Stock>({ groceries: {}, vegetables: {} });
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [settings, setSettingsState] = useState<SettingsType | null>(null);
-  const [dailyMenus, setDailyMenus] = useState<DailyMenu[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [modal, setModal] = useState<ModalState>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info'
+  });
 
-  // Load initial data
   useEffect(() => {
-    const initializeData = async () => {
+    let mounted = true;
+
+    const initializeApp = async () => {
       try {
-        const [menuData, stockData, tasksData, remindersData, settingsData, menusData] = await Promise.all([
-          loadFoodMenu(),
-          loadStock(),
-          loadTasks(),
-          loadReminders(),
-          Promise.resolve(loadSettings()),
-          Promise.resolve(loadDailyMenus())
-        ]);
-
-        setFoodMenu(menuData);
-        setStock(stockData);
-        setTasks(tasksData);
-        setReminders(remindersData);
-        setSettingsState(settingsData);
-        setDailyMenus(menusData);
-
-        // Initialize Telegram bot service
-        if (settingsData.telegram.enabled) {
-          telegramBotService.updateSettings(settingsData.telegram);
-          
-          // Get current and tomorrow menus from the loaded data
-          const today = new Date().toISOString().split('T')[0];
-          const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-          
-          const currentMenu = menusData.find(menu => menu.date === today) || {
-            date: today,
-            breakfast: "No meal planned",
-            addons: "No addon planned",
-            lunch: "No meal planned",
-            dinner: "No meal planned",
-            snacks: "No snack planned"
-          };
-          
-          const tomorrowMenu = menusData.find(menu => menu.date === tomorrow) || {
-            date: tomorrow,
-            breakfast: "No meal planned",
-            addons: "No addon planned",
-            lunch: "No meal planned",
-            dinner: "No meal planned",
-            snacks: "No snack planned"
-          };
-          
-          telegramBotService.updateData({
-            tasks: tasksData,
-            reminders: remindersData,
-            currentMenu: currentMenu,
-            tomorrowMenu: tomorrowMenu,
-            stock: stockData,
-            foodMenu: menuData
-          });
-          telegramBotService.startPolling();
-          telegramBotService.setBotCommands();
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+          try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('Service Worker registered:', registration);
+            
+            // Listen for service worker messages
+                         navigator.serviceWorker.addEventListener('message', (event) => {
+               const { type } = event.data;
+               
+               if (type === 'BACKGROUND_WIFI_CHECK') {
+                 // Handle background WiFi check request
+                 console.log('Background WiFi check requested');
+               }
+             });
+          } catch (error) {
+            console.error('Service Worker registration failed:', error);
+          }
         }
-      } catch (error) {
-        console.error('Error initializing data:', error);
-      } finally {
-        setLoading(false);
+
+        // Initialize WiFi monitor service
+        await wifiMonitorService.initialize();
+
+        if (mounted) {
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error('Failed to initialize app:', err);
+        if (mounted) {
+          setError(err instanceof Error ? err.message : 'Unknown error occurred');
+          setIsLoading(false);
+        }
       }
     };
 
-    initializeData();
+    // Listen for timer modal events
+    const handleTimerModal = (event: CustomEvent) => {
+      const { type, message } = event.detail;
+      
+      setModal({
+        isOpen: true,
+        title: type === 'timer1' ? 'Timer 1 Alert' : 'Timer 2 Alert',
+        message,
+        type
+      });
+    };
 
-    // Cleanup function
+    // Listen for visibility change to handle app focus
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // App became visible, refresh state
+        console.log('App became visible, refreshing state');
+      }
+    };
+
+    // Listen for online/offline events
+    const handleOnline = () => {
+      console.log('App came online');
+    };
+
+    const handleOffline = () => {
+      console.log('App went offline');
+    };
+
+    // Add event listeners
+    window.addEventListener('show-timer-modal', handleTimerModal as EventListener);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Initialize the app
+    initializeApp();
+
+    // Cleanup
     return () => {
-      telegramBotService.stopPolling();
+      mounted = false;
+      window.removeEventListener('show-timer-modal', handleTimerModal as EventListener);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  // Get current and tomorrow's menu
-  const getCurrentMenu = (): DailyMenu => {
-    const today = new Date().toISOString().split('T')[0];
-    return dailyMenus.find(menu => menu.date === today) || {
-      date: today,
-      breakfast: "No meal planned",
-      addons: "No addon planned",
-      lunch: "No meal planned",
-      dinner: "No meal planned",
-      snacks: "No snack planned"
+  // Handle app cleanup on unmount
+  useEffect(() => {
+    return () => {
+      wifiMonitorService.destroy();
     };
+  }, []);
+
+  const closeModal = () => {
+    setModal(prev => ({ ...prev, isOpen: false }));
   };
 
-  const getTomorrowMenu = (): DailyMenu => {
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    return dailyMenus.find(menu => menu.date === tomorrow) || {
-      date: tomorrow,
-      breakfast: "No meal planned",
-      addons: "No addon planned",
-      lunch: "No meal planned",
-      dinner: "No meal planned",
-      snacks: "No snack planned"
-    };
-  };
-
-  // Handle menu rotation
-  const handleMenuRotate = (mealType: keyof FoodMenu) => {
-    const currentMenu = getCurrentMenu();
-    const newMeal = rotateMeal(currentMenu[mealType], foodMenu, stock, mealType);
-    
-    const updatedMenus = dailyMenus.map(menu => 
-      menu.date === currentMenu.date 
-        ? { ...menu, [mealType]: newMeal }
-        : menu
-    );
-    
-    setDailyMenus(updatedMenus);
-    saveDailyMenus(updatedMenus);
-  };
-
-  // Handle marking meal as cooked
-  const handleMarkCooked = (mealType: keyof FoodMenu, dishName: string) => {
-    const dish = foodMenu[mealType].find(d => d.name === dishName);
-    if (!dish) return;
-
-    if (!checkDishAvailability(dish, stock)) {
-      alert('Insufficient ingredients to cook this dish!');
-      return;
-    }
-
-    const confirmCook = window.confirm(
-      `Mark "${dishName}" as cooked? This will reduce ingredients from stock.`
-    );
-
-    if (confirmCook) {
-      const newStock = reduceStock(stock, dish);
-      setStock(newStock);
-      saveStock(newStock);
-      
-      // Show success message
-      alert(`${dishName} marked as cooked! Stock updated.`);
-    }
-  };
-
-  // Handle adding new task
-  const handleAddTask = () => {
-    const taskText = prompt('Enter new task:');
-    if (!taskText) return;
-
-    const taskType = window.confirm('Is this a shopping task? Click OK for shopping, Cancel for todo') ? 'shopping' : 'todo';
-    const dueDate = prompt('Enter due date (YYYY-MM-DD):') || new Date().toISOString().split('T')[0];
-    const dueTime = prompt('Enter due time (HH:MM):') || '09:00';
-    const priority = (prompt('Enter priority (low/medium/high):') || 'medium') as 'low' | 'medium' | 'high';
-
-    const newTask: Task = {
-      id: generateTaskId(),
-      type: taskType,
-      task: taskText,
-      due_date: dueDate,
-      due_time: dueTime,
-      priority: priority,
-      status: 'pending',
-      created_at: new Date().toISOString()
-    };
-
-    const updatedTasks = [...tasks, newTask];
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-  };
-
-  // Handle updating stock
-  const handleUpdateStock = (newStock: Stock) => {
-    setStock(newStock);
-    saveStock(newStock);
-    
-    // Update Telegram bot data
-    if (settings?.telegram.enabled) {
-      telegramBotService.updateData({
-        tasks,
-        reminders,
-        currentMenu: getCurrentMenu(),
-        tomorrowMenu: getTomorrowMenu(),
-        stock: newStock,
-        foodMenu
-      });
-    }
-  };
-
-  // Handle updating tasks
-  const handleUpdateTasks = (newTasks: Task[]) => {
-    setTasks(newTasks);
-    saveTasks(newTasks);
-    
-    // Update Telegram bot data
-    if (settings?.telegram.enabled) {
-      telegramBotService.updateData({
-        tasks: newTasks,
-        reminders,
-        currentMenu: getCurrentMenu(),
-        tomorrowMenu: getTomorrowMenu(),
-        stock,
-        foodMenu
-      });
-    }
-  };
-
-  // Handle updating reminders
-  const handleUpdateReminders = (newReminders: Reminder[]) => {
-    setReminders(newReminders);
-    saveReminders(newReminders);
-    
-    // Update Telegram bot data
-    if (settings?.telegram.enabled) {
-      telegramBotService.updateData({
-        tasks,
-        reminders: newReminders,
-        currentMenu: getCurrentMenu(),
-        tomorrowMenu: getTomorrowMenu(),
-        stock,
-        foodMenu
-      });
-    }
-  };
-
-  // Handle updating settings
-  const handleUpdateSettings = (newSettings: SettingsType) => {
-    setSettingsState(newSettings);
-    saveSettings(newSettings);
-    
-    // Update Telegram bot service
-    telegramBotService.updateSettings(newSettings.telegram);
-    
-    if (newSettings.telegram.enabled) {
-      telegramBotService.updateData({
-        tasks,
-        reminders,
-        currentMenu: getCurrentMenu(),
-        tomorrowMenu: getTomorrowMenu(),
-        stock,
-        foodMenu
-      });
-      telegramBotService.startPolling();
-      telegramBotService.setBotCommands();
-    } else {
-      telegramBotService.stopPolling();
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-primary-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-500 mx-auto mb-4"></div>
-          <p className="text-primary-300">Loading Smart Assistant...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-lg">Initializing WiFi Monitor...</p>
+          <p className="text-sm text-gray-400 mt-2">Loading configuration and setting up services</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-red-400 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold mb-4">Initialization Error</h2>
+          <p className="text-gray-300 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-primary-900 text-white">
-        <div className="pb-16">
-          <Routes>
-            <Route 
-              path="/" 
-              element={
-                <Dashboard
-                  currentMenu={getCurrentMenu()}
-                  tomorrowMenu={getTomorrowMenu()}
-                  tasks={tasks}
-                  reminders={reminders}
-                  foodMenu={foodMenu}
-                  settings={settings!}
-                  onMenuRotate={handleMenuRotate}
-                  onMarkCooked={handleMarkCooked}
-                  onAddTask={handleAddTask}
-                />
-              } 
-            />
-            <Route 
-              path="/stock" 
-              element={
-                <StockManager
-                  stock={stock}
-                  onUpdateStock={handleUpdateStock}
-                />
-              } 
-            />
-            <Route 
-              path="/menu" 
-              element={
-                <MenuPlanner
-                  foodMenu={foodMenu}
-                  stock={stock}
-                  onUpdateMenu={setFoodMenu}
-                />
-              } 
-            />
-            <Route 
-              path="/tasks" 
-              element={
-                <TaskManager
-                  tasks={tasks}
-                  reminders={reminders}
-                  onUpdateTasks={handleUpdateTasks}
-                  onUpdateReminders={handleUpdateReminders}
-                />
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <Settings
-                  settings={settings!}
-                  onUpdateSettings={handleUpdateSettings}
-                />
-              } 
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-        
-        <Navigation 
-          currentPage={currentPage} 
-          onPageChange={setCurrentPage} 
-        />
-      </div>
-    </Router>
+    <div className="App">
+      <Dashboard />
+      
+      <TimerModal
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        type={modal.type}
+        onClose={closeModal}
+      />
+
+      {/* PWA Install Prompt */}
+      <InstallPrompt />
+    </div>
   );
 }
+
+// Component for PWA install prompt
+const InstallPrompt: React.FC = () => {
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+
+    const result = await installPrompt.prompt();
+    console.log('Install prompt result:', result);
+    
+    setInstallPrompt(null);
+    setShowPrompt(false);
+  };
+
+  const handleDismiss = () => {
+    setShowPrompt(false);
+    setInstallPrompt(null);
+  };
+
+  if (!showPrompt || !installPrompt) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 bg-gray-800 border border-gray-600 rounded-lg p-4 shadow-lg max-w-sm z-40">
+      <div className="flex items-start space-x-3">
+        <div className="text-2xl">📱</div>
+        <div className="flex-1">
+          <h4 className="text-white font-semibold mb-1">Install WiFi Monitor</h4>
+          <p className="text-gray-300 text-sm mb-3">
+            Install this app for better performance and offline access.
+          </p>
+          <div className="flex space-x-2">
+            <button
+              onClick={handleInstall}
+              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
+            >
+              Install
+            </button>
+            <button
+              onClick={handleDismiss}
+              className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded transition-colors"
+            >
+              Not Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default App;
