@@ -7,50 +7,76 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.ico', 'vite.svg', 'config.json', 'sounds/notification.mp3'],
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
+      injectManifest: {
+        injectionPoint: undefined
+      },
       manifest: {
-        name: 'Smart Assistant PWA',
-        short_name: 'SmartAssistant',
-        description: 'A comprehensive Progressive Web App for managing daily nutrition, tasks, inventory, and automation',
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+        name: 'WiFi Monitor - Connection Timer App',
+        short_name: 'WiFi Monitor',
+        description: 'Monitor WiFi connections and trigger timed notifications',
+        theme_color: '#1f2937',
+        background_color: '#111827',
         display: 'standalone',
-        orientation: 'portrait',
+        orientation: 'portrait-primary',
         scope: '/',
         start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/vite.svg',
             sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
+            type: 'image/svg+xml',
             purpose: 'any maskable'
+          },
+          {
+            src: '/vite.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
+          }
+        ],
+        categories: ['productivity', 'utilities'],
+        shortcuts: [
+          {
+            name: 'Dashboard',
+            short_name: 'Dashboard',
+            description: 'View WiFi monitor dashboard',
+            url: '/',
+            icons: [
+              {
+                src: '/vite.svg',
+                sizes: '192x192',
+                type: 'image/svg+xml'
+              }
+            ]
           }
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,mp3}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\.telegram\.org\/.*/i,
-            handler: 'NetworkFirst',
+            urlPattern: /^\/config\.json$/,
+            handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'telegram-api-cache',
+              cacheName: 'config-cache',
+              expiration: {
+                maxEntries: 1,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day
+              }
+            }
+          },
+          {
+            urlPattern: /^\/sounds\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'audio-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
               }
             }
           }

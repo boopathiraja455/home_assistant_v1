@@ -1,0 +1,19 @@
+{
+  "targetSSID": "YourWiFiNetwork",
+  "timer1Duration": 30,
+  "timer2Duration": 60,
+  "durationUnit": "seconds",
+  "notifications": {
+    "enabled": true,
+    "sound": true,
+    "soundFile": "/sounds/notification.mp3"
+  },
+  "ui": {
+    "theme": "dark",
+    "showDashboard": true
+  },
+  "debug": {
+    "mockMode": true,
+    "logLevel": "info"
+  }
+}
